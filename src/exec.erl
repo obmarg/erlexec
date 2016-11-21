@@ -552,19 +552,22 @@ default() ->
      {portexe, default(portexe)}].
 
 %% @private
-default(portexe) -> 
+default(portexe) ->
     % Retrieve the Priv directory
-    Priv = code:priv_dir(erlexec),
-    % Find all ports using wildcard for resiliency
-    Bin = case filelib:wildcard("*/exec-port", Priv) of
-        [Port] -> Port;
-        _      ->
-            Arch = erlang:system_info(system_architecture),
-            Tail = filename:join([Arch, "exec-port"]),
-            os:find_executable(filename:join([Priv, Tail]))
-    end,
-    % Join the priv/port path
-    filename:join([Priv, Bin]);
+    case code:priv_dir(erlexec) of
+        {error, _} -> "";
+        Priv ->
+            % Find all ports using wildcard for resiliency
+            Bin = case filelib:wildcard("*/exec-port", Priv) of
+                [Port] -> Port;
+                _      ->
+                    Arch = erlang:system_info(system_architecture),
+                    Tail = filename:join([Arch, "exec-port"]),
+                    os:find_executable(filename:join([Priv, Tail]))
+            end,
+            % Join the priv/port path
+            filename:join([Priv, Bin])
+    end;
 default(Option) ->
     proplists:get_value(Option, default()).
 
